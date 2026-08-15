@@ -1,0 +1,3 @@
+ishang2002vashishtha_db_user
+YzC2P0eGKAVu84kS
+mongodb+srv://ishang2002vashishtha_db_user:YzC2P0eGKAVu84kS@cluster0.urpkalb.mongodb.net/
