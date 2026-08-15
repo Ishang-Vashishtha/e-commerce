@@ -157,7 +157,7 @@ const Checkout = () => {
       // -----------------------------------------
       // STEP 2: Razorpay Checkout options
       // -----------------------------------------
-      const razorpayKey = process.env.RAZORPAY_API_KEY;
+      const razorpayKey = process.env.REACT_APP_RAZORPAY_KEY_ID;
 
       if (!razorpayKey) {
         setLoading(false);
