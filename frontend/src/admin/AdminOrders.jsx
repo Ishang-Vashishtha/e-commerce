@@ -1,11 +1,19 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
+const formatStatusLabel = (status = "pending") => {
+  const value = String(status).trim();
+  if (!value) return "Pending";
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+};
+
 const AdminOrders = () => {
   const { user } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
+    if (!user?.token) return;
+
     const fetchOrders = async () => {
       const res = await fetch("/api/orders", {
         headers: { Authorization: `Bearer ${user.token}` },
@@ -17,21 +25,30 @@ const AdminOrders = () => {
   }, [user]);
 
   const updateStatus = async (id, status) => {
+    if (!user?.token) return;
+
+    const normalizedStatus = String(status).trim().toLowerCase();
     const res = await fetch(`/api/orders/${id}/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${user.token}`,
       },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status: normalizedStatus }),
     });
     if (res.ok) {
-      setOrders(
-        orders.map((order) =>
-          order._id === id ? { ...order, status } : order,
+      setOrders((currentOrders) =>
+        currentOrders.map((order) =>
+          order._id === id ? { ...order, status: normalizedStatus } : order,
         ),
       );
     }
+  };
+
+  const getCustomerName = (order) => {
+    if (order?.user?.name) return order.user.name;
+    if (order?.userId?.name) return order.userId.name;
+    return "Unknown User";
   };
 
   return (
@@ -52,14 +69,14 @@ const AdminOrders = () => {
             {orders.map((order) => (
               <tr key={order._id} style={rowStyle}>
                 <td style={tdStyle}>{order._id.substring(0, 8)}...</td>
-                <td style={tdStyle}>{order.userId?.name || "Deleted User"}</td>
-                <td style={tdStyle}>₹{order.totalAmount.toFixed(2)}</td>
+                <td style={tdStyle}>{getCustomerName(order)}</td>
+                <td style={tdStyle}>₹{Number(order.totalAmount || 0).toFixed(2)}</td>
                 <td style={tdStyle}>
                   {new Date(order.createdAt).toLocaleDateString()}
                 </td>
                 <td style={tdStyle}>
                   <select
-                    value={order.status}
+                    value={String(order.status || "pending").toLowerCase()}
                     onChange={(e) => updateStatus(order._id, e.target.value)}
                     style={{
                       background: "#09090b",
@@ -70,9 +87,9 @@ const AdminOrders = () => {
                       outline: "none",
                     }}
                   >
-                    <option value="Pending">Pending</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
+                    <option value="pending">Pending</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
                   </select>
                 </td>
               </tr>

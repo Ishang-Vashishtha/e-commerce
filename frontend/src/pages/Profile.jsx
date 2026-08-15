@@ -3,6 +3,12 @@ import { AuthContext } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 
 
+const formatStatusLabel = (status = "pending") => {
+  const value = String(status).trim();
+  if (!value) return "Pending";
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+};
+
 const Profile = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -141,75 +147,78 @@ const Profile = () => {
         </div>
       ) : (
         <div style={{ display: "grid", gap: "20px" }}>
-          {orders.map((order) => (
-            <div
-              key={order._id}
-              style={{
-                background: "#09090b",
-                padding: "20px",
-                borderRadius: "12px",
-                border: "1px solid #27272a",
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "20px",
-              }}
-            >
-              <div>
-                <p
-                  style={{
-                    color: "#a1a1aa",
-                    fontSize: "0.9rem",
-                    marginBottom: "5px",
-                  }}
-                >
-                  Order ID: <span style={{ color: "#fff" }}>{order._id}</span>
-                </p>
-                <p
-                  style={{
-                    color: "#a1a1aa",
-                    fontSize: "0.9rem",
-                    marginBottom: "5px",
-                  }}
-                >
-                  Placed On:{" "}
-                  <span style={{ color: "#fff" }}>
-                    {new Date(order.createdAt).toLocaleDateString()}
+          {orders.map((order) => {
+            const status = formatStatusLabel(order.status);
+            return (
+              <div
+                key={order._id}
+                style={{
+                  background: "#09090b",
+                  padding: "20px",
+                  borderRadius: "12px",
+                  border: "1px solid #27272a",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "20px",
+                }}
+              >
+                <div>
+                  <p
+                    style={{
+                      color: "#a1a1aa",
+                      fontSize: "0.9rem",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    Order ID: <span style={{ color: "#fff" }}>{order._id}</span>
+                  </p>
+                  <p
+                    style={{
+                      color: "#a1a1aa",
+                      fontSize: "0.9rem",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    Placed On:{" "}
+                    <span style={{ color: "#fff" }}>
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </span>
+                  </p>
+                  <p style={{ color: "#a1a1aa", fontSize: "0.9rem" }}>
+                    Total:{" "}
+                    <strong style={{ color: "#10b981" }}>
+                      ₹{Number(order.totalAmount || 0).toFixed(2)}
+                    </strong>
+                  </p>
+                </div>
+                <div>
+                  <span
+                    style={{
+                      background:
+                        status === "Delivered"
+                          ? "rgba(16,185,129,0.1)"
+                          : status === "Shipped"
+                            ? "rgba(59,130,246,0.1)"
+                            : "rgba(245,158,11,0.1)",
+                      color:
+                        status === "Delivered"
+                          ? "#10b981"
+                          : status === "Shipped"
+                            ? "#3b82f6"
+                            : "#f59e0b",
+                      padding: "8px 16px",
+                      borderRadius: "20px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {status}
                   </span>
-                </p>
-                <p style={{ color: "#a1a1aa", fontSize: "0.9rem" }}>
-                  Total:{" "}
-                  <strong style={{ color: "#10b981" }}>
-                    ₹{order.totalAmount.toFixed(2)}
-                  </strong>
-                </p>
+                </div>
               </div>
-              <div>
-                <span
-                  style={{
-                    background:
-                      order.status === "Delivered"
-                        ? "rgba(16,185,129,0.1)"
-                        : order.status === "Shipped"
-                          ? "rgba(59,130,246,0.1)"
-                          : "rgba(245,158,11,0.1)",
-                    color:
-                      order.status === "Delivered"
-                        ? "#10b981"
-                        : order.status === "Shipped"
-                          ? "#3b82f6"
-                          : "#f59e0b",
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {order.status}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

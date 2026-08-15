@@ -1,6 +1,14 @@
 const Order = require("../models/order");
 const sendEmail = require("../utils/sendEmail");
 
+const normalizeOrderStatus = (status = "") => {
+  const value = String(status).trim().toLowerCase();
+  if (["pending", "shipped", "delivered"].includes(value)) {
+    return value;
+  }
+  return "pending";
+};
+
 const createOrder = async (req, res) => {
   try {
     const { items, totalAmount, address, paymentId } = req.body;
@@ -10,10 +18,12 @@ const createOrder = async (req, res) => {
 
     const order = new Order({
       user: req.user._id,
+      userId: req.user._id,
       items,
       totalAmount,
       address,
       paymentId,
+      status: normalizeOrderStatus(req.body.status),
     });
     const createdOrder = await order.save();
 
@@ -33,13 +43,15 @@ const createOrder = async (req, res) => {
       <p>Thank you for shopping with us!</p>
     `;
 
-    await sendEmail({
+    sendEmail({
       to: req.user.email,
       subject: "E-Shop - Order Confirmation",
       html: message,
+    }).catch((emailError) => {
+      console.error("Order email send failed:", emailError);
     });
 
-    res.status(201).json({ message: "order created ", createdOrder });
+    return res.status(201).json({ message: "order created ", createdOrder });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -49,6 +61,7 @@ const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({})
       .populate("user", "name email")
+      .populate("userId", "name email")
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -86,7 +99,7 @@ const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    order.status = req.body.status || order.status;
+    order.status = normalizeOrderStatus(req.body.status || order.status);
     const updatedOrder = await order.save();
     res.json(updatedOrder);
   } catch (error) {
@@ -112,4 +125,5 @@ module.exports = {
   getOrderById,
   updateOrderStatus,
   getMyOrders,
+  normalizeOrderStatus,
 };
