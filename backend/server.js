@@ -33,6 +33,9 @@ app.use("/api/products", require("./routes/productRoutes.js"));
 app.use("/api/orders", require("./routes/orderRoutes.js"));
 app.use("/api/payment", require("./routes/paymentRoutes.js"));
 app.use("/api/analytics", require("./routes/analyticsRoutes.js"));
+app.use("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
 
 // Production: serve React frontend
 if (process.env.NODE_ENV === "production") {
